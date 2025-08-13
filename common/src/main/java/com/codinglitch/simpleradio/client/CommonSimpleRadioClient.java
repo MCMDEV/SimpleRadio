@@ -10,6 +10,7 @@ import com.codinglitch.simpleradio.core.registry.particles.ListenParticle;
 import com.codinglitch.simpleradio.core.registry.particles.SpeakLineParticle;
 import com.codinglitch.simpleradio.core.registry.particles.SpeakRingParticle;
 import com.codinglitch.simpleradio.platform.ClientServices;
+import com.codinglitch.simpleradio.platform.services.ClientRegistryHelper;
 import com.codinglitch.simpleradio.radio.RadioReceiver;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
@@ -98,8 +99,11 @@ public class CommonSimpleRadioClient {
     }
 
     // -- Screens -- \\
+    public static void loadScreensWithHelper(ClientRegistryHelper clientRegistryHelper) {
+        clientRegistryHelper.registerScreen(SimpleRadioMenus.RADIOSMITHER_MENU, RadiosmitherScreen::new);
+    }
     public static void loadScreens() {
-        ClientServices.REGISTRY.registerScreen(SimpleRadioMenus.RADIOSMITHER_MENU, RadiosmitherScreen::new);
+        loadScreensWithHelper(ClientServices.REGISTRY);
     }
 
     // -- Particles -- \\

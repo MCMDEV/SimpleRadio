@@ -35,7 +35,7 @@ public class RadioRenderer implements BlockEntityRenderer<RadioBlockEntity> {
             poseStack.mulPose(Axis.YP.rotationDegrees(radioBlock.getYRotationDegrees(state)));
 
             VertexConsumer vertexConsumer = bufferSource.getBuffer(model.renderType(RadioModel.TEXTURE_LOCATION));
-            model.renderToBuffer(poseStack, vertexConsumer, light, overlay, 1);
+            model.renderToBuffer(poseStack, vertexConsumer, light, overlay);
 
             poseStack.popPose();
         }

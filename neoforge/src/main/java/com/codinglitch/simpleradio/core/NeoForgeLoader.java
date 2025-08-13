@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-@EventBusSubscriber(modid = CommonSimpleRadio.ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = CommonSimpleRadio.ID)
 public class NeoForgeLoader {
     @SubscribeEvent
     public static void gatherData(GatherDataEvent event) {
@@ -62,6 +62,8 @@ public class NeoForgeLoader {
 
         event.register(Registries.PARTICLE_TYPE, helper -> SimpleRadioParticles.PARTICLES.forEach(helper::register));
 
+        event.register(Registries.DATA_COMPONENT_TYPE, helper -> SimpleRadioComponents.COMPONENT_TYPES.forEach(helper::register));
+
         event.register(NeoForgeRegistries.Keys.CONDITION_CODECS, helper -> {
             helper.register(CommonSimpleRadio.id("items_enabled"), ItemsEnabledCondition.CODEC);
         });
@@ -81,10 +83,10 @@ public class NeoForgeLoader {
 
             @Override
             public <T extends CustomPacket> void register(CustomPacketPayload.Type<T> type, Class<T> packetClass, StreamCodec<RegistryFriendlyByteBuf, T> codec, TriConsumer<T, MinecraftServer, ServerPlayer> handler) {
-                registrar.playToClient(type, codec, (payload, context) -> {
+                registrar.playToServer(type, codec, (payload, context) -> {
                     Player player = context.player();
                     if (!(player instanceof ServerPlayer serverPlayer)) return;
-                    handler.accept((T) payload, serverPlayer.getServer(), serverPlayer);
+                    handler.accept(payload, serverPlayer.getServer(), serverPlayer);
                 });
             }
         });
@@ -92,7 +94,7 @@ public class NeoForgeLoader {
         SimpleRadioNetworking.loadClientbound(new SimpleRadioNetworking.ClientboundRegistry() {
             @Override
             public <T extends CustomPacket> void register(CustomPacketPayload.Type<T> type, Class<T> packetClass, StreamCodec<RegistryFriendlyByteBuf, T> codec, Consumer<T> handler) {
-                registrar.playToServer(type, codec, (payload, context) -> {
+                registrar.playToClient(type, codec, (payload, context) -> {
                    handler.accept(payload);
                 });
             }

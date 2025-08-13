@@ -66,7 +66,7 @@ public class InsulatorRenderer implements BlockEntityRenderer<InsulatorBlockEnti
             }
 
             VertexConsumer vertexConsumer = bufferSource.getBuffer(model.renderType(InsulatorModel.TEXTURE_LOCATION));
-            model.renderToBuffer(poseStack, vertexConsumer, light, overlay, 1);
+            model.renderToBuffer(poseStack, vertexConsumer, light, overlay);
 
             poseStack.popPose();
         }
