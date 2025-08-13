@@ -2,6 +2,7 @@ package com.codinglitch.simpleradio.core.registry.items;
 
 import com.codinglitch.simpleradio.CommonSimpleRadio;
 import com.codinglitch.simpleradio.api.central.Module;
+import com.codinglitch.simpleradio.core.registry.SimpleRadioComponents;
 import com.codinglitch.simpleradio.core.registry.SimpleRadioModules;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
@@ -12,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,15 +26,14 @@ public class ModuleItem extends TieredItem {
     }
 
     public static Module getModule(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
-
+        CompoundTag tag = SimpleRadioComponents.getOrCreateTagOnItemStack(stack);
         ResourceLocation type = tag.contains("type") ? ResourceLocation.tryParse(tag.getString("type")) : CommonSimpleRadio.id("range");
         return SimpleRadioModules.get(type);
     }
 
     @Override
     public Component getName(ItemStack stack) {
-        if (stack.getOrCreateTag().contains("type")) {
+        if (SimpleRadioComponents.getOrCreateTagOnItemStack(stack).contains("type")) {
             Module module = getModule(stack);
             String modulePath = "module."+module.identifier.getNamespace()+"."+module.identifier.getPath();
 
@@ -43,8 +44,8 @@ public class ModuleItem extends TieredItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> components, TooltipFlag tooltip) {
-        CompoundTag tag = stack.getOrCreateTag();
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> components, TooltipFlag flag) {
+        CompoundTag tag = SimpleRadioComponents.getOrCreateTagOnItemStack(stack);
 
         if (tag.contains("type")) {
             Module module = getModule(stack);
@@ -71,15 +72,17 @@ public class ModuleItem extends TieredItem {
             ).withStyle(ChatFormatting.DARK_GRAY));*/
         }
 
-        super.appendHoverText(stack, level, components, tooltip);
+        super.appendHoverText(stack, context, components, flag);
     }
 
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int $$3, boolean $$4) {
-        CompoundTag tag = stack.getOrCreateTag();
-
-        if (!tag.contains("type"))
-            tag.putString("type", CommonSimpleRadio.id("range").toString());
+        SimpleRadioComponents.modifyTagOnItemStack(stack, (tag, dirty) -> {
+            if (!tag.contains("type")) {
+                tag.putString("type", CommonSimpleRadio.id("range").toString());
+                dirty.set();
+            }
+        });
 
         super.inventoryTick(stack, level, entity, $$3, $$4);
     }

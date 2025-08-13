@@ -3,6 +3,7 @@ package com.codinglitch.simpleradio.core.registry.items;
 import com.codinglitch.simpleradio.SimpleRadioLibrary;
 import com.codinglitch.simpleradio.api.central.Frequency;
 import com.codinglitch.simpleradio.core.central.WorldTicking;
+import com.codinglitch.simpleradio.core.registry.SimpleRadioComponents;
 import com.codinglitch.simpleradio.core.registry.SimpleRadioFrequencing;
 import com.codinglitch.simpleradio.radio.*;
 import net.minecraft.core.particles.ParticleTypes;
@@ -50,7 +51,7 @@ public class WalkieTalkieItem extends TransceiverItem implements WorldTicking {
             if (entity instanceof Player player) {
                 ItemStack using = player.getUseItem();
 
-                CompoundTag usingTag = using.getOrCreateTag();
+                CompoundTag usingTag = SimpleRadioComponents.getOrCreateTagOnItemStack(using);
                 if (!usingTag.contains("frequency") || !usingTag.contains("modulation")) return true;
 
                 if (!(using.getItem() instanceof TransceiverItem)) return true;
@@ -83,34 +84,35 @@ public class WalkieTalkieItem extends TransceiverItem implements WorldTicking {
         this.tick(myStack, level);
 
         if (item.tickCount > 60 && item.tickCount % 10 == 0) {
-            CompoundTag myTag = myStack.getOrCreateTag();
+            SimpleRadioComponents.modifyTagOnItemStack(myStack, (myTag, dirty) -> {
+                for (Entity entity : level.getEntities(item, item.getBoundingBox().inflate(1.0d))) {
+                    if (entity instanceof ItemEntity otherItem) {
+                        if (!(otherItem.getItem().getItem() instanceof WalkieTalkieItem)) continue;
 
-            for (Entity entity : level.getEntities(item, item.getBoundingBox().inflate(1.0d))) {
-                if (entity instanceof ItemEntity otherItem) {
-                    if (!(otherItem.getItem().getItem() instanceof WalkieTalkieItem)) continue;
+                        ItemStack theirStack = otherItem.getItem();
+                        CompoundTag theirTag = SimpleRadioComponents.getOrCreateTagOnItemStack(theirStack);
+                        if (!theirTag.contains("frequency")) continue;
+                        if (!theirTag.contains("modulation")) continue;
+                        if (theirTag.getString("frequency").equals(myTag.getString("frequency")) &&
+                                theirTag.getString("modulation").equals(myTag.getString("modulation"))) continue;
 
-                    ItemStack theirStack = otherItem.getItem();
-                    CompoundTag theirTag = theirStack.getOrCreateTag();
-                    if (!theirTag.contains("frequency")) continue;
-                    if (!theirTag.contains("modulation")) continue;
-                    if (theirTag.getString("frequency").equals(myTag.getString("frequency")) &&
-                            theirTag.getString("modulation").equals(myTag.getString("modulation"))) continue;
+                        myTag.putString("frequency", theirTag.getString("frequency"));
+                        myTag.putString("modulation", theirTag.getString("modulation"));
+                        dirty.set();
 
-                    myTag.putString("frequency", theirTag.getString("frequency"));
-                    myTag.putString("modulation", theirTag.getString("modulation"));
+                        level.playSound(null, item, SoundEvents.ALLAY_ITEM_TAKEN, SoundSource.MASTER, 1, 1);
 
-                    level.playSound(null, item, SoundEvents.ALLAY_ITEM_TAKEN, SoundSource.MASTER, 1, 1);
+                        for (int i = 0; i < 3; i++) {
+                            level.addParticle(ParticleTypes.ELECTRIC_SPARK,
+                                    item.getRandomX(0.5D), 0.25D + item.getRandomY(), item.getRandomZ(0.5D),
+                                    RANDOM.nextDouble(-0.2, 0.2), RANDOM.nextDouble(-0.2, 0.2), RANDOM.nextDouble(-0.2, 0.2)
+                            );
+                        }
 
-                    for (int i = 0; i < 3; i++) {
-                        level.addParticle(ParticleTypes.ELECTRIC_SPARK,
-                                item.getRandomX(0.5D), 0.25D + item.getRandomY(), item.getRandomZ(0.5D),
-                                RANDOM.nextDouble(-0.2, 0.2), RANDOM.nextDouble(-0.2, 0.2), RANDOM.nextDouble(-0.2, 0.2)
-                        );
+                        level.addParticle(new VibrationParticleOption(new EntityPositionSource(item, 0.25f), 5), otherItem.getX(), otherItem.getY() + 0.25f, otherItem.getZ(), 0.0, 0.0, 0.0);
                     }
-
-                    level.addParticle(new VibrationParticleOption(new EntityPositionSource(item, 0.25f), 5), otherItem.getX(), otherItem.getY() + 0.25f, otherItem.getZ(), 0.0, 0.0, 0.0);
                 }
-            }
+            });
         }
     }
 

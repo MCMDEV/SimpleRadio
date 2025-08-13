@@ -10,6 +10,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
@@ -43,7 +44,7 @@ public class ForgeLoader {
 
         generator.addProvider(
                 event.includeServer(),
-                new SimpleRadioRecipeProvider(generator.getPackOutput())
+                new SimpleRadioRecipeProvider(generator.getPackOutput(), event.getLookupProvider())
         );
 
         generator.addProvider(
@@ -79,8 +80,8 @@ public class ForgeLoader {
 
         SimpleRadioNetworking.loadServerbound(new SimpleRadioNetworking.ServerboundRegistry() {
             @Override
-            public <P extends CustomPacket, B extends FriendlyByteBuf> void register(CustomPacketPayload.Type<P> type, Class<P> packetClass, StreamCodec<B, P> codec, TriConsumer<P, MinecraftServer, ServerPlayer> handler) {
-                CHANNEL.<P, B>messageBuilder(packetClass, index.getAndIncrement(), (NetworkProtocol<B>) null)
+            public <T extends CustomPacket> void register(CustomPacketPayload.Type<T> type, Class<T> packetClass, StreamCodec<RegistryFriendlyByteBuf, T> codec, TriConsumer<T, MinecraftServer, ServerPlayer> handler) {
+                CHANNEL.<T, RegistryFriendlyByteBuf>messageBuilder(packetClass, index.getAndIncrement(), (NetworkProtocol<RegistryFriendlyByteBuf>) null)
                         .codec(codec)
                         .consumerMainThread((packet, context) -> {
                             handler.accept(packet, context.getSender().getServer(), context.getSender());
@@ -91,8 +92,8 @@ public class ForgeLoader {
 
         SimpleRadioNetworking.loadClientbound(new SimpleRadioNetworking.ClientboundRegistry() {
             @Override
-            public <P extends CustomPacket, B extends FriendlyByteBuf> void register(CustomPacketPayload.Type<P> type, Class<P> packetClass, StreamCodec<B, P> codec, Consumer<P> handler) {
-                CHANNEL.<P, B>messageBuilder(packetClass, index.getAndIncrement(), (NetworkProtocol<B>) null)
+            public <T extends CustomPacket> void register(CustomPacketPayload.Type<T> type, Class<T> packetClass, StreamCodec<RegistryFriendlyByteBuf, T> codec, Consumer<T> handler) {
+                CHANNEL.<T, RegistryFriendlyByteBuf>messageBuilder(packetClass, index.getAndIncrement(), (NetworkProtocol<RegistryFriendlyByteBuf>) null)
                         .codec(codec)
                         .consumerMainThread((packet, context) -> {
                             handler.accept(packet);

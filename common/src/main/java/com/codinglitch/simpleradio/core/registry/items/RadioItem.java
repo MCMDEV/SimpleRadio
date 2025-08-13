@@ -25,11 +25,11 @@ public class RadioItem extends BlockItem implements Frequencing, Alterable {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> components, TooltipFlag tooltip) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> components, TooltipFlag flag) {
         appendTooltip(stack, components);
-        super.appendHoverText(stack, level, components, tooltip);
-    }
 
+        super.appendHoverText(stack, context, components, flag);
+    }
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean b) {
         super.inventoryTick(stack, level, entity, slot, b);

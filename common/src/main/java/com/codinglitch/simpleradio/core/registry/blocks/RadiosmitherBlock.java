@@ -95,7 +95,7 @@ public class RadiosmitherBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult result) {
         if (!level.isClientSide) {
             RadiosmitherPart part = state.getValue(RADIOSMITHER_PART);
             BlockPos mainPos = part == RadiosmitherPart.MAIN ? pos : pos.relative(state.getValue(FACING).getClockWise());
@@ -107,6 +107,21 @@ public class RadiosmitherBlock extends BaseEntityBlock {
             }
         }
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack $$0, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
+        if (!level.isClientSide) {
+            RadiosmitherPart part = state.getValue(RADIOSMITHER_PART);
+            BlockPos mainPos = part == RadiosmitherPart.MAIN ? pos : pos.relative(state.getValue(FACING).getClockWise());
+
+            MenuProvider provider = state.getMenuProvider(level, mainPos);
+
+            if (provider != null) {
+                player.openMenu(provider);
+            }
+        }
+        return ItemInteractionResult.SUCCESS;
     }
 
 

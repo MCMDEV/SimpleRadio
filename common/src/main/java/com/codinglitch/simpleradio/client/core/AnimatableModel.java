@@ -39,7 +39,4 @@ public abstract class AnimatableModel extends Model {
     }
 
     public abstract void setupAnim(RadioBlockEntity blockEntity, float ageInTicks);
-
-    @Override
-    public abstract void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int i, int i1, float v, float v1, float v2, float v3);
 }

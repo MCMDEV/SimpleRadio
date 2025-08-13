@@ -16,6 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -472,18 +473,22 @@ public class RadioManager implements SimpleRadioApi {
         } else if (entity instanceof ItemEntity itemEntity) {
             return itemCriteria.test(itemEntity.getItem());
         } else {
-            for (ItemStack stack : entity.getHandSlots()) {
-                if (itemCriteria.test(stack)) return true;
-            }
             return false;
         }
     }
 
     @Nullable
     public static ItemStack isEntityHolding(Entity entity, Predicate<ItemStack> handCriteria) {
-        for (ItemStack stack : entity.getHandSlots()) {
-            if (handCriteria.test(stack)) return stack;
+        if(entity instanceof Player player) {
+            for (ItemStack stack : player.getHandSlots()) {
+                if (handCriteria.test(stack)) return stack;
+            }
+        }   else if(entity instanceof Mob mob) {
+            for (ItemStack stack : mob.getHandSlots()) {
+                if (handCriteria.test(stack)) return stack;
+            }
         }
+
         return null;
     }
 

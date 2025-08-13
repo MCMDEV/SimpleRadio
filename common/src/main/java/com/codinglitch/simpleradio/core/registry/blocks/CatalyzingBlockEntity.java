@@ -9,6 +9,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -27,9 +28,7 @@ public abstract class CatalyzingBlockEntity extends AuditoryBlockEntity {
         super(blockEntityType, pos, state);
     }
 
-    public InteractionResult trySwapCatalyst(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
-        ItemStack stack = player.getItemInHand(hand);
-
+    public ItemInteractionResult trySwapCatalyst(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
         if (this.catalyst == null) {
             if (!stack.isEmpty()) {
                 Catalyst catalyst = CatalystRegistry.get(stack.getItem());
@@ -43,7 +42,7 @@ public abstract class CatalyzingBlockEntity extends AuditoryBlockEntity {
                         level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 1, 1);
                     }
 
-                    return InteractionResult.SUCCESS;
+                    return ItemInteractionResult.SUCCESS;
                 }
             }
         } else {
@@ -57,7 +56,7 @@ public abstract class CatalyzingBlockEntity extends AuditoryBlockEntity {
                     level.playSound(null, pos, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1, 1);
                 }
 
-                return InteractionResult.SUCCESS;
+                return ItemInteractionResult.SUCCESS;
             }
         }
 

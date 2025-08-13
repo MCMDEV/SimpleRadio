@@ -116,7 +116,7 @@ public class SpeakerBlock extends BaseEntityBlock implements Routing, Speaking {
         ItemStack stack = new ItemStack(this);
         BlockEntity blockEntity = builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (blockEntity instanceof SpeakerBlockEntity speakerBlockEntity)
-            speakerBlockEntity.saveToItem(stack);
+            speakerBlockEntity.saveToItem(stack, blockEntity.getLevel().registryAccess());
 
         return List.of(stack);
     }

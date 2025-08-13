@@ -1,6 +1,7 @@
 package com.codinglitch.simpleradio.datagen;
 
 import com.codinglitch.simpleradio.core.registry.SimpleRadioItems;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -13,14 +14,15 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Recipe;
 
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class CommonRecipeProvider extends RecipeProvider {
 
     public static final HashMap<Recipe<?>, ResourceLocation> MAP = new HashMap<>();
 
-    public CommonRecipeProvider(PackOutput output) {
-        super(output);
+    public CommonRecipeProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> providerCompletableFuture) {
+        super(output, providerCompletableFuture);
     }
 
     @Override

@@ -3,13 +3,16 @@ package com.codinglitch.simpleradio.core.registry.blocks;
 import com.codinglitch.simpleradio.CommonSimpleRadio;
 import com.codinglitch.simpleradio.api.central.Frequency;
 import com.codinglitch.simpleradio.api.central.Socket;
+import com.codinglitch.simpleradio.core.registry.SimpleRadioComponents;
 import com.codinglitch.simpleradio.radio.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -67,7 +70,11 @@ public abstract class AuditoryBlockEntity extends BlockEntity implements Socket 
     }
 
     public void loadFromItem(ItemStack stack) {
-        loadTag(stack.getOrCreateTag());
+        CustomData customData = stack.get(SimpleRadioComponents.BLOCK_ITEM_DATA);
+        if(customData == null) {
+            return;
+        }
+        loadTag(customData.copyTag());
     }
 
     public void loadTag(CompoundTag tag) {
@@ -92,17 +99,16 @@ public abstract class AuditoryBlockEntity extends BlockEntity implements Socket 
             tag.putUUID("uuid", this.id);
         }
     }
-
     @Override
-    protected void saveAdditional(CompoundTag tag) {
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider $$1) {
         saveTag(tag);
-        super.saveAdditional(tag);
+        super.saveAdditional(tag, $$1);
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(HolderLookup.Provider $$0) {
         CompoundTag tag = new CompoundTag();
-        this.saveAdditional(tag);
+        this.saveAdditional(tag, $$0);
         return tag;
     }
 

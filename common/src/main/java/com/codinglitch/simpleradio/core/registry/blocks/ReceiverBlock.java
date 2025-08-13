@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -113,7 +114,7 @@ public class ReceiverBlock extends BaseEntityBlock implements Routing, Receiving
         ItemStack stack = new ItemStack(this);
         BlockEntity blockEntity = builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (blockEntity instanceof AuditoryBlockEntity auditoryBlockEntity)
-            auditoryBlockEntity.saveToItem(stack);
+            auditoryBlockEntity.saveToItem(stack, blockEntity.getLevel().registryAccess());
 
         return List.of(stack);
     }
@@ -129,16 +130,16 @@ public class ReceiverBlock extends BaseEntityBlock implements Routing, Receiving
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (blockEntity == null) return super.use(state, level, pos, player, hand, result);
+        if (blockEntity == null) return super.useItemOn(stack, state, level, pos, player, hand, result);
 
         if (blockEntity instanceof CatalyzingBlockEntity catalyzingBlock)  {
-            InteractionResult interactionResult = catalyzingBlock.trySwapCatalyst(state, level, pos, player, hand, result);
+            ItemInteractionResult interactionResult = catalyzingBlock.trySwapCatalyst(stack, state, level, pos, player, hand, result);
             if (interactionResult != null) return interactionResult;
         }
 
-        return super.use(state, level, pos, player, hand, result);
+        return super.useItemOn(stack, state, level, pos, player, hand, result);
     }
 
     @Nullable

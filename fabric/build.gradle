@@ -18,7 +18,7 @@ dependencies {
     // --- Dependencies --- \\
 
     compileOnly "com.codinglitch.lexiconfig:lexiconfig-api:${lexiconfig_version}"
-    modRuntimeOnly "com.codinglitch.lexiconfig:lexiconfig-fabric:${lexiconfig_version}"
+    // modRuntimeOnly "com.codinglitch.lexiconfig:lexiconfig-fabric:${lexiconfig_version}"
 
     compileOnly "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
     modRuntimeOnly "maven.modrinth:simple-voice-chat:fabric-${minecraft_version}-${voicechat_version}"

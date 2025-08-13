@@ -2,83 +2,71 @@ package com.codinglitch.simpleradio.mixin;
 
 import com.codinglitch.simpleradio.radio.RadioManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.Clearable;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.RecordItem;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
+import net.minecraft.world.item.JukeboxSong;
+import net.minecraft.world.item.JukeboxSongPlayer;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.ticks.ContainerSingleItem;
+import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(JukeboxBlockEntity.class)
-public abstract class MixinJukeboxBlockEntity extends BlockEntity implements Clearable, ContainerSingleItem {
+@Mixin(JukeboxSongPlayer.class)
+public abstract class MixinJukeboxBlockEntity {
 
-    @Shadow private long recordStartedTick;
+    @Shadow
+    @Final
+    private BlockPos blockPos;
 
-    @Shadow private long tickCount;
+    @Shadow
+    @Nullable
+    private Holder<JukeboxSong> song;
 
-    @Shadow public abstract ItemStack getTheItem();
+    @Shadow
+    private long ticksSinceSongStarted;
 
-    public MixinJukeboxBlockEntity(BlockEntityType<?> $$0, BlockPos $$1, BlockState $$2) {
-        super($$0, $$1, $$2);
+    @Inject(method = "play", at = @At(value = "TAIL"))
+    private void simpleradio$startPlaying_audioGathering(LevelAccessor $$0, Holder<JukeboxSong> $$1, CallbackInfo ci) {
+        RadioManager.getInstance().onSoundPlayed(
+                (ServerLevel) $$0,
+                blockPos.getCenter(),
+                BuiltInRegistries.SOUND_EVENT.wrapAsHolder($$1.value().soundEvent().value()),
+                1, 1, blockPos.asLong()
+        );
     }
 
-    @Inject(method = "startPlaying()V", at = @At(value = "TAIL"))
-    private void simpleradio$startPlaying_audioGathering(CallbackInfo ci) {
-        Item item = this.getTheItem().getItem();
-
-        if (item instanceof RecordItem recordItem && level instanceof ServerLevel serverLevel) {
-            RadioManager.getInstance().onSoundPlayed(
-                    serverLevel,
-                    getBlockPos().getCenter(),
-                    BuiltInRegistries.SOUND_EVENT.wrapAsHolder(recordItem.getSound()),
-                    1, 1, this.getBlockPos().asLong()
-            );
-        }
-    }
-
-    @Inject(method = "stopPlaying()V", at = @At(value = "TAIL"))
-    private void simpleradio$stopPlaying_audioGathering(CallbackInfo ci) {
-        if (level instanceof ServerLevel serverLevel) {
-            RadioManager.getInstance().onSoundPlayed(
-                    serverLevel,
-                    getBlockPos().getCenter(),
-                    BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.EMPTY),
-                    0, 1, this.getBlockPos().asLong()
-            );
-        }
+    @Inject(method = "stop", at = @At(value = "TAIL"))
+    private void simpleradio$stopPlaying_audioGathering(LevelAccessor $$0, BlockState $$1, CallbackInfo ci) {
+        RadioManager.getInstance().onSoundPlayed(
+                (ServerLevel) $$0,
+                blockPos.getCenter(),
+                BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.EMPTY),
+                0, 1, blockPos.asLong()
+        );
     }
 
     @Inject(
             at = @At(
                     value = "INVOKE",
                     shift = At.Shift.BEFORE,
-                    target = "Lnet/minecraft/world/level/block/entity/JukeboxBlockEntity;spawnMusicParticles(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)V"
+                    target = "Lnet/minecraft/world/item/JukeboxSongPlayer;spawnMusicParticles(Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;)V"
             ), method = "tick"
     )
-    private void simpleradio$tick_audioGathering(Level level, BlockPos pos, BlockState state, CallbackInfo ci) {
-        Item item = this.getTheItem().getItem();
+    private void simpleradio$tick_audioGathering(LevelAccessor $$0, BlockState $$1, CallbackInfo ci) {
+        float offset = ticksSinceSongStarted / 20f;
 
-        if (item instanceof RecordItem recordItem && level instanceof ServerLevel serverLevel) {
-            float offset = (tickCount - recordStartedTick) / 20f;
-
-            RadioManager.getInstance().onSoundPlayed(
-                    serverLevel,
-                    getBlockPos().getCenter(),
-                    BuiltInRegistries.SOUND_EVENT.wrapAsHolder(recordItem.getSound()),
-                    1, 1,  offset, this.getBlockPos().asLong()
-            );
-        }
+        RadioManager.getInstance().onSoundPlayed(
+                (ServerLevel) $$0,
+                blockPos.getCenter(),
+                BuiltInRegistries.SOUND_EVENT.wrapAsHolder(song.value().soundEvent().value()),
+                1, 1,  offset, blockPos.asLong()
+        );
     }
 }

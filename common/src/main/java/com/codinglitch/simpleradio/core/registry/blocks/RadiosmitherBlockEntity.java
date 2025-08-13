@@ -1,29 +1,27 @@
 package com.codinglitch.simpleradio.core.registry.blocks;
 
-import com.codinglitch.simpleradio.core.central.BaseContainer;
 import com.codinglitch.simpleradio.core.registry.menus.RadiosmitherMenu;
 import com.codinglitch.simpleradio.core.registry.SimpleRadioBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public class RadiosmitherBlockEntity extends BaseContainerBlockEntity {
     public static final int CONTAINER_SIZE = 1;
 
-    private final NonNullList<ItemStack> items = NonNullList.withSize(CONTAINER_SIZE, ItemStack.EMPTY);
+    private NonNullList<ItemStack> items = NonNullList.withSize(CONTAINER_SIZE, ItemStack.EMPTY);
 
     public RadiosmitherBlockEntity(BlockPos pos, BlockState state) {
         super(SimpleRadioBlockEntities.RADIOSMITHER, pos, state);
@@ -81,6 +79,16 @@ public class RadiosmitherBlockEntity extends BaseContainerBlockEntity {
         return null;
     }
 
+    @Override
+    protected NonNullList<ItemStack> getItems() {
+        return items;
+    }
+
+    @Override
+    protected void setItems(NonNullList<ItemStack> var1) {
+        items = var1;
+    }
+
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
@@ -101,15 +109,15 @@ public class RadiosmitherBlockEntity extends BaseContainerBlockEntity {
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        ContainerHelper.loadAllItems(tag, items);
+    protected void loadAdditional(CompoundTag $$0, HolderLookup.Provider $$1) {
+        super.loadAdditional($$0, $$1);
+        ContainerHelper.loadAllItems($$0, items, $$1);
     }
 
     @Override
-    public void saveAdditional(CompoundTag tag) {
-        ContainerHelper.saveAllItems(tag, items);
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag $$0, HolderLookup.Provider $$1) {
+        ContainerHelper.saveAllItems($$0, items, $$1);
+        super.saveAdditional($$0, $$1);
     }
 
     @Override

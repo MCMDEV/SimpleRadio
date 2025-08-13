@@ -5,13 +5,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 
 public class SimpleRadioSounds {
-    public static final SoundEvent RADIO_OPEN = SoundEvent.createVariableRangeEvent(new ResourceLocation(CommonSimpleRadio.ID, "radio_open"));
-    public static final SoundEvent RADIO_CLOSE = SoundEvent.createVariableRangeEvent(new ResourceLocation(CommonSimpleRadio.ID, "radio_close"));
+    public static final SoundEvent RADIO_OPEN = SoundEvent.createVariableRangeEvent(ResourceLocation.tryBuild(CommonSimpleRadio.ID, "radio_open"));
+    public static final SoundEvent RADIO_CLOSE = SoundEvent.createVariableRangeEvent(ResourceLocation.tryBuild(CommonSimpleRadio.ID, "radio_close"));
 
-    public static final SoundEvent SHORT_CIRCUIT = SoundEvent.createVariableRangeEvent(new ResourceLocation(CommonSimpleRadio.ID, "short_circuit"));
+    public static final SoundEvent SHORT_CIRCUIT = SoundEvent.createVariableRangeEvent(ResourceLocation.tryBuild(CommonSimpleRadio.ID, "short_circuit"));
 
-    public static final SoundEvent TILT_MICROPHONE = SoundEvent.createVariableRangeEvent(new ResourceLocation(CommonSimpleRadio.ID, "tilt_microphone"));
-    public static final SoundEvent PRESS_MICROPHONE = SoundEvent.createVariableRangeEvent(new ResourceLocation(CommonSimpleRadio.ID, "press_microphone"));
+    public static final SoundEvent TILT_MICROPHONE = SoundEvent.createVariableRangeEvent(ResourceLocation.tryBuild(CommonSimpleRadio.ID, "tilt_microphone"));
+    public static final SoundEvent PRESS_MICROPHONE = SoundEvent.createVariableRangeEvent(ResourceLocation.tryBuild(CommonSimpleRadio.ID, "press_microphone"));
 
-    public static final SoundEvent SPIN_INSULATOR = SoundEvent.createVariableRangeEvent(new ResourceLocation(CommonSimpleRadio.ID, "spin_insulator"));
+    public static final SoundEvent SPIN_INSULATOR = SoundEvent.createVariableRangeEvent(ResourceLocation.tryBuild(CommonSimpleRadio.ID, "spin_insulator"));
 }

@@ -112,7 +112,7 @@ public class RadioBlock extends BaseEntityBlock implements Routing, Speaking, Re
         ItemStack stack = new ItemStack(this);
         BlockEntity blockEntity = builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (blockEntity instanceof RadioBlockEntity radioBlockEntity)
-            radioBlockEntity.saveToItem(stack);
+            radioBlockEntity.saveToItem(stack, blockEntity.getLevel().registryAccess());
 
         return List.of(stack);
     }

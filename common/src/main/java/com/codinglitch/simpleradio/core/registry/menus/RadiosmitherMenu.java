@@ -2,6 +2,7 @@ package com.codinglitch.simpleradio.core.registry.menus;
 
 import com.codinglitch.simpleradio.api.central.Frequencing;
 import com.codinglitch.simpleradio.api.central.Frequency;
+import com.codinglitch.simpleradio.core.registry.SimpleRadioComponents;
 import com.codinglitch.simpleradio.core.registry.SimpleRadioMenus;
 import com.codinglitch.simpleradio.core.registry.blocks.RadiosmitherBlockEntity;
 import net.minecraft.nbt.CompoundTag;
@@ -55,10 +56,12 @@ public class RadiosmitherMenu extends AbstractContainerMenu {
         if (!tinkering.isEmpty() && tinkering.getItem() instanceof Frequencing frequencing) {
             frequencing.setFrequency(tinkering, frequency, modulation);
 
-            CompoundTag tag = tinkering.getOrCreateTag();
-            if (tag.contains("user")) {
-                tag.remove("user");
-            }
+            SimpleRadioComponents.modifyTagOnItemStack(tinkering, (tag, dirty) -> {
+                if(tag.contains("user")) {
+                    tag.remove("user");
+                    dirty.set();
+                }
+            });
         }
     }
 

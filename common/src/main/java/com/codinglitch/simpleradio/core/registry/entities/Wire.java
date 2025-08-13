@@ -408,12 +408,12 @@ public class Wire extends Entity implements Medium {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.getEntityData().define(FROM, Optional.empty());
-        this.getEntityData().define(FROM_TYPE, "");
+    protected void defineSynchedData(SynchedEntityData.Builder var1) {
+        var1.define(FROM, Optional.empty());
+        var1.define(FROM_TYPE, "");
 
-        this.getEntityData().define(TO, Optional.empty());
-        this.getEntityData().define(TO_TYPE, "");
+        var1.define(TO, Optional.empty());
+        var1.define(TO_TYPE, "");
     }
 
     @Override

@@ -31,7 +31,7 @@ public abstract class MixinModelBakery {
 
     @Shadow @Final private Map<ResourceLocation, UnbakedModel> unbakedCache;
 
-    @Shadow @Final private Map<ResourceLocation, UnbakedModel> topLevelModels;
+    @Shadow @Final private Map<ModelResourceLocation, UnbakedModel> topLevelModels;
 
     @Inject(at = @At(value = "TAIL"), method = "<init>")
     private void simpleradio$init_registerModel(BlockColors $$0, ProfilerFiller $$1, Map $$2, Map $$3, CallbackInfo ci) {
@@ -39,9 +39,9 @@ public abstract class MixinModelBakery {
         SimpleRadioModels.onModelsRegister(locations::add);
 
         for (ModelResourceLocation location : locations) {
-            UnbakedModel unbakedmodel = this.getModel(location);
+            UnbakedModel unbakedmodel = this.getModel(location.id());
             unbakedmodel.resolveParents(this::getModel);
-            this.unbakedCache.put(location, unbakedmodel);
+            this.unbakedCache.put(location.id(), unbakedmodel);
             this.topLevelModels.put(location, unbakedmodel);
         }
     }

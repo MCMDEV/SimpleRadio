@@ -23,12 +23,6 @@ public class MicrophoneItem extends BlockItem implements Alterable {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> components, TooltipFlag tooltip) {
-        //appendTooltip(stack, components);
-        super.appendHoverText(stack, level, components, tooltip);
-    }
-
-    @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean b) {
         super.inventoryTick(stack, level, entity, slot, b);
 

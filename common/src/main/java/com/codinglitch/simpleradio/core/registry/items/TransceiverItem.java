@@ -4,6 +4,7 @@ import com.codinglitch.simpleradio.CommonSimpleRadio;
 import com.codinglitch.simpleradio.SimpleRadioLibrary;
 import com.codinglitch.simpleradio.api.central.*;
 import com.codinglitch.simpleradio.core.central.WorldTicking;
+import com.codinglitch.simpleradio.core.registry.SimpleRadioComponents;
 import com.codinglitch.simpleradio.core.registry.SimpleRadioFrequencing;
 import com.codinglitch.simpleradio.core.registry.SimpleRadioSounds;
 import com.codinglitch.simpleradio.radio.*;
@@ -67,7 +68,7 @@ public class TransceiverItem extends Item implements Listening, Speaking, Receiv
                 ItemStack using = player.getUseItem();
                 if (!(using.getItem() instanceof TransceiverItem)) return false;
 
-                CompoundTag usingTag = using.getOrCreateTag();
+                CompoundTag usingTag = SimpleRadioComponents.getOrCreateTagOnItemStack(using);
 
                 if (!usingTag.contains("frequency") || !usingTag.contains("modulation")) return false;
                 if (!usingTag.getString("frequency").equals(frequencyName) || !usingTag.getString("modulation").equals(modulation)) return false;
@@ -91,17 +92,21 @@ public class TransceiverItem extends Item implements Listening, Speaking, Receiv
     }
 
     @Override
-    public void verifyTagAfterLoad(CompoundTag tag) {
-        super.verifyTagAfterLoad(tag);
+    public void verifyComponentsAfterLoad(ItemStack $$0) {
+        super.verifyComponentsAfterLoad($$0);
 
-        if (tag.contains("activated"))
-            tag.remove("activated");
+        SimpleRadioComponents.modifyTagOnItemStack($$0, (tag, dirty) -> {
+            if (tag.contains("activated")) {
+                tag.remove("activated");
+                dirty.set();
+            }
+        });
     }
 
     @Override
     public void onDestroyed(ItemEntity itemEntity) {
         super.onDestroyed(itemEntity);
-        CompoundTag tag = itemEntity.getItem().getOrCreateTag();
+        CompoundTag tag = SimpleRadioComponents.getOrCreateTagOnItemStack(itemEntity.getItem());
         if (tag.contains("frequency") && tag.contains("modulation") && tag.contains("user")) {
             inactivate(itemEntity.level(), tag.getString("frequency"), tag.getString("modulation"), tag.getUUID("user"));
         }
@@ -111,55 +116,57 @@ public class TransceiverItem extends Item implements Listening, Speaking, Receiv
         if (entity.isRemoved()) return;
 
         Level level = entity.level();
-        CompoundTag tag = stack.getOrCreateTag();
+        SimpleRadioComponents.modifyTagOnItemStack(stack, (tag, dirty) -> {
+            String frequency = tag.getString("frequency");
+            String modulation = tag.getString("modulation");
+            tick(stack, level);
+            if (frequency.isEmpty() || modulation.isEmpty()) return;
 
-        String frequency = tag.getString("frequency");
-        String modulation = tag.getString("modulation");
-        tick(stack, level);
-        if (frequency.isEmpty() || modulation.isEmpty()) return;
-
-        if (!Frequency.check(frequency)) {
-            CommonSimpleRadio.info("Invalid frequency {}, replacing with default", frequency);
-            frequency = this.getDefaultFrequency();
-            tag.putString("frequency", frequency);
-        }
-
-        // Mode-switch deactivation (i.e. item is dropped)
-        RadioRouter activeRouter = null;
-        if (tag.contains("user")) {
-            activeRouter = RadioManager.getRouterSided(tag.getUUID("user"), level.isClientSide);
-        }
-
-        if (activeRouter != null && (activeRouter.owner == null || !activeRouter.owner.getUUID().equals(entity.getUUID()))) {
-            activeRouter = null;
-        }
-
-        // Transceiver activation
-        UUID activationUUID = null;
-        if (entity.level().isClientSide) {
-
-            if (tag.contains("user") && activeRouter == null) {
-                activationUUID = tag.getUUID("user");
+            if (!Frequency.check(frequency)) {
+                CommonSimpleRadio.info("Invalid frequency {}, replacing with default", frequency);
+                frequency = this.getDefaultFrequency();
+                tag.putString("frequency", frequency);
+                dirty.set();
             }
 
-        } else {
-            if (activeRouter != null) return;
+            // Mode-switch deactivation (i.e. item is dropped)
+            RadioRouter activeRouter = null;
+            if (tag.contains("user")) {
+                activeRouter = RadioManager.getRouterSided(tag.getUUID("user"), level.isClientSide);
+            }
 
-            if (!tag.contains("user")) {
-                activationUUID = UUID.randomUUID();
-                tag.putUUID("user", activationUUID);
+            if (activeRouter != null && (activeRouter.owner == null || !activeRouter.owner.getUUID().equals(entity.getUUID()))) {
+                activeRouter = null;
+            }
+
+            // Transceiver activation
+            UUID activationUUID = null;
+            if (entity.level().isClientSide) {
+
+                if (tag.contains("user") && activeRouter == null) {
+                    activationUUID = tag.getUUID("user");
+                }
+
             } else {
-                activationUUID = tag.getUUID("user");
+                if (activeRouter != null) return;
+
+                if (!tag.contains("user")) {
+                    activationUUID = UUID.randomUUID();
+                    tag.putUUID("user", activationUUID);
+                    dirty.set();
+                } else {
+                    activationUUID = tag.getUUID("user");
+                }
             }
-        }
 
-        if (activationUUID == null) return;
+            if (activationUUID == null) return;
 
-        CommonSimpleRadio.debug("Activated transceiver using UUID {}!", activationUUID);
+            CommonSimpleRadio.debug("Activated transceiver using UUID {}!", activationUUID);
 
-        frequency = tag.getString("frequency");
-        modulation = tag.getString("modulation");
-        activate(level, stack, frequency, modulation, entity, activationUUID);
+            frequency = tag.getString("frequency");
+            modulation = tag.getString("modulation");
+            activate(level, stack, frequency, modulation, entity, activationUUID);
+        });
     }
 
     @Override
@@ -176,9 +183,10 @@ public class TransceiverItem extends Item implements Listening, Speaking, Receiv
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> components, TooltipFlag tooltip) {
+    public void appendHoverText(ItemStack stack, TooltipContext tooltipContext, List<Component> components, TooltipFlag tooltip) {
         appendTooltip(stack, components);
-        super.appendHoverText(stack, level, components, tooltip);
+        super.appendHoverText(stack, tooltipContext, components, tooltip);
+
     }
 
     @Override
@@ -196,7 +204,7 @@ public class TransceiverItem extends Item implements Listening, Speaking, Receiv
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack $$0, LivingEntity $$1) {
         return 72000;
     }
 

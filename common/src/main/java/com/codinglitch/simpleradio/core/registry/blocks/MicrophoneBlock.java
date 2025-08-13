@@ -9,10 +9,12 @@ import com.codinglitch.simpleradio.core.registry.SimpleRadioSounds;
 import com.codinglitch.simpleradio.radio.RadioListener;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.Vec3i;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -125,24 +127,25 @@ public class MicrophoneBlock extends BaseEntityBlock implements Routing, Listeni
         return 0;
     }
 
+    @Override
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
         ItemStack stack = new ItemStack(this);
         BlockEntity blockEntity = builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         if (blockEntity instanceof RadioBlockEntity radioBlockEntity)
-            radioBlockEntity.saveToItem(stack);
+            radioBlockEntity.saveToItem(stack, blockEntity.getLevel().registryAccess());
 
         return List.of(stack);
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult result) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof MicrophoneBlockEntity mic) {
             if (player.isCrouching()) {
                 mic.tilt = (mic.tilt + 0.1f) % 3;
 
                 if (!level.isClientSide)
-                 level.playSound(null, mic.getBlockPos(), SimpleRadioSounds.TILT_MICROPHONE, SoundSource.BLOCKS, 0.1f, 0.9f + level.random.nextFloat()*0.2f);
+                    level.playSound(null, mic.getBlockPos(), SimpleRadioSounds.TILT_MICROPHONE, SoundSource.BLOCKS, 0.1f, 0.9f + level.random.nextFloat()*0.2f);
 
 
                 return InteractionResult.SUCCESS;
@@ -158,7 +161,34 @@ public class MicrophoneBlock extends BaseEntityBlock implements Routing, Listeni
             }
         }
 
-        return super.use(state, level, pos, player, hand, result);
+        return super.useWithoutItem(state, level, pos, player, result);
+    }
+
+    @Override
+    public ItemInteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand interactionHand, BlockHitResult result) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof MicrophoneBlockEntity mic) {
+            if (player.isCrouching()) {
+                mic.tilt = (mic.tilt + 0.1f) % 3;
+
+                if (!level.isClientSide)
+                    level.playSound(null, mic.getBlockPos(), SimpleRadioSounds.TILT_MICROPHONE, SoundSource.BLOCKS, 0.1f, 0.9f + level.random.nextFloat()*0.2f);
+
+
+                return ItemInteractionResult.SUCCESS;
+            } else {
+                mic.setListening(!mic.isListening());
+
+                if (!level.isClientSide) {
+                    float pitch = mic.isListening() ? 1.1f : 0.9f;
+                    level.playSound(null, mic.getBlockPos(), SimpleRadioSounds.PRESS_MICROPHONE, SoundSource.BLOCKS, 0.4f, pitch + level.random.nextFloat()*0.1f);
+                }
+
+                return ItemInteractionResult.SUCCESS;
+            }
+        }
+
+        return super.useItemOn(itemStack, state, level, pos, player, interactionHand, result);
     }
 
     @Override

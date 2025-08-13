@@ -9,6 +9,6 @@ import net.minecraft.network.FriendlyByteBuf;
 public class FabricClientNetworkingHelper implements ClientNetworkingHelper {
     @Override
     public void sendToServer(CustomPacket packet) {
-        ClientPlayNetworking.send(packet.id(), packet.writeNew());
+        ClientPlayNetworking.send(packet);
     }
 }

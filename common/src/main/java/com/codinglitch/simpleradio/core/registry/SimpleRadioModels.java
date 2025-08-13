@@ -27,14 +27,14 @@ public class SimpleRadioModels {
     public static final List<ModelOverride> OVERRIDES = new ArrayList<>();
 
     public static ModelSubstitution<ModuleModel> MODULE = register(new ModelSubstitution<>(ModuleModel::new,
-            new ModelResourceLocation(CommonSimpleRadio.ID, "iron_module", "inventory"),
-            new ModelResourceLocation(CommonSimpleRadio.ID, "gold_module", "inventory"),
-            new ModelResourceLocation(CommonSimpleRadio.ID, "diamond_module", "inventory"),
-            new ModelResourceLocation(CommonSimpleRadio.ID, "netherite_module", "inventory")
+            new ModelResourceLocation(ResourceLocation.tryBuild(CommonSimpleRadio.ID, "iron_module"), "inventory"),
+            new ModelResourceLocation(ResourceLocation.tryBuild(CommonSimpleRadio.ID, "gold_module"), "inventory"),
+            new ModelResourceLocation(ResourceLocation.tryBuild(CommonSimpleRadio.ID, "diamond_module"), "inventory"),
+            new ModelResourceLocation(ResourceLocation.tryBuild(CommonSimpleRadio.ID, "netherite_module"), "inventory")
     ));
 
-    public static ModelResourceLocation TRANSCEIVER = register(new ModelResourceLocation(CommonSimpleRadio.ID, "transceiver_item", "inventory"));
-    public static ModelResourceLocation TRANSCEIVER_IN_HAND = register(new ModelResourceLocation(CommonSimpleRadio.ID, "transceiver", "inventory"));
+    public static ModelResourceLocation TRANSCEIVER = register(new ModelResourceLocation(ResourceLocation.tryBuild(CommonSimpleRadio.ID, "item/transceiver_item"), "inventory"));
+    public static ModelResourceLocation TRANSCEIVER_IN_HAND = register(new ModelResourceLocation(ResourceLocation.tryBuild(CommonSimpleRadio.ID, "item/transceiver"), "inventory"));
 
     // ----
 
@@ -59,7 +59,7 @@ public class SimpleRadioModels {
         }
     }
 
-    public static void onModelsLoad(Map<ResourceLocation, BakedModel> bakedRegistry) {
+    public static void onModelsLoad(Map<ModelResourceLocation, BakedModel> bakedRegistry) {
         for (ModelSubstitution<BakedModel> substitution : SUBSTITUTIONS) {
             for (ModelResourceLocation location : substitution.locations) {
                 BakedModel existingModel = bakedRegistry.get(location);

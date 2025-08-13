@@ -6,6 +6,7 @@ import com.codinglitch.simpleradio.core.registry.SimpleRadioItems;
 import com.google.gson.JsonElement;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
@@ -18,10 +19,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class SimpleRadioRecipeProvider extends RecipeProvider implements IConditionBuilder {
-    public SimpleRadioRecipeProvider(PackOutput output) {
-        super(output);
+    public SimpleRadioRecipeProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+        super(output, registries);
     }
 
     protected RecipeOutput withItemConditions(RecipeOutput exporter, Item item) {
@@ -47,6 +49,11 @@ public class SimpleRadioRecipeProvider extends RecipeProvider implements ICondit
                         .condition(new ItemsEnabledCondition(location.getPath()))
                         .recipe(exporter -> exporter.accept(id, recipe, advancementId, advancement))
                         .save(exporter, location);
+            }
+
+            @Override
+            public HolderLookup.Provider registry() {
+                return exporter.registry();
             }
 
             @Override

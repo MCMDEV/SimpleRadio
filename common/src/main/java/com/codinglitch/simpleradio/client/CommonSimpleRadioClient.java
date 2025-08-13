@@ -40,12 +40,12 @@ public class CommonSimpleRadioClient {
     // -- Model Properties -- \\
     public static final Map<UUID, Boolean> isTransmitting = new HashMap<>();
     public static void loadProperties(TriConsumer<Item, ResourceLocation, ClampedItemPropertyFunction> registry) {
-        registry.accept(SimpleRadioItems.TRANSCEIVER, new ResourceLocation("using"),
+        registry.accept(SimpleRadioItems.TRANSCEIVER, ResourceLocation.withDefaultNamespace("using"),
                 (stack, level, entity, i) -> entity != null && entity.isUsingItem() && entity.getUseItem() == stack ? 1 : 0);
 
-        registry.accept(SimpleRadioItems.TRANSCEIVER, new ResourceLocation("speaking"),
+        registry.accept(SimpleRadioItems.TRANSCEIVER, ResourceLocation.withDefaultNamespace("speaking"),
             (stack, level, entity, i) -> {
-                CompoundTag tag = stack.getOrCreateTag();
+                CompoundTag tag = SimpleRadioComponents.getOrCreateTagOnItemStack(stack);
                 if (!tag.contains("user")) return 0;
 
                 UUID uuid = tag.getUUID("user");
@@ -56,9 +56,9 @@ public class CommonSimpleRadioClient {
             }
         );
 
-        registry.accept(SimpleRadioItems.WALKIE_TALKIE, new ResourceLocation("using"),
+        registry.accept(SimpleRadioItems.WALKIE_TALKIE, ResourceLocation.withDefaultNamespace("using"),
                 (stack, level, entity, i) -> entity != null && entity.isUsingItem() && entity.getUseItem() == stack ? 1 : 0);
-        registry.accept(SimpleRadioItems.SPUDDIE_TALKIE, new ResourceLocation("using"),
+        registry.accept(SimpleRadioItems.SPUDDIE_TALKIE, ResourceLocation.withDefaultNamespace("using"),
                 (stack, level, entity, i) -> entity != null && entity.isUsingItem() && entity.getUseItem() == stack ? 1 : 0);
     }
 

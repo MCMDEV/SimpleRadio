@@ -3,17 +3,22 @@ package com.codinglitch.simpleradio.core.registry.blocks;
 import com.codinglitch.simpleradio.api.central.Frequency;
 import com.codinglitch.simpleradio.api.central.WorldlyPosition;
 import com.codinglitch.simpleradio.core.registry.SimpleRadioBlockEntities;
+import com.codinglitch.simpleradio.core.registry.SimpleRadioComponents;
 import com.codinglitch.simpleradio.radio.RadioManager;
 import com.codinglitch.simpleradio.radio.RadioReceiver;
 import com.codinglitch.simpleradio.radio.RadioListener;
 import com.codinglitch.simpleradio.radio.RadioTransmitter;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -102,9 +107,9 @@ public class FrequencerBlockEntity extends BlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(HolderLookup.Provider $$0) {
         CompoundTag tag = new CompoundTag();
-        saveTag(tag);
+        this.saveAdditional(tag, $$0);
         return tag;
     }
 
@@ -113,25 +118,31 @@ public class FrequencerBlockEntity extends BlockEntity {
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         CompoundTag tag = new CompoundTag();
         saveTag(tag);
-        return ClientboundBlockEntityDataPacket.create(this, blockEntity -> tag);
+        return ClientboundBlockEntityDataPacket.create(this, (blockEntity, registryAccess) -> tag);
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        loadTag(tag);
+    protected void loadAdditional(CompoundTag $$0, HolderLookup.Provider $$1) {
+        super.loadAdditional($$0, $$1);
+        loadTag($$0);
+
     }
 
     @Override
-    public void saveAdditional(CompoundTag tag) {
+    protected void saveAdditional(CompoundTag $$0, HolderLookup.Provider $$1) {
+        saveTag($$0);
+        super.saveAdditional($$0, $$1);
+    }
+
+    @Override
+    public void saveToItem(ItemStack $$0, HolderLookup.Provider $$1) {
+        CompoundTag tag = new CompoundTag();
         saveTag(tag);
-        super.saveAdditional(tag);
-    }
-
-    @Override
-    public void saveToItem(ItemStack stack) {
-        saveTag(stack.getOrCreateTag());
-        super.saveToItem(stack);
+        DataComponentPatch dataComponentPatch = DataComponentPatch.builder()
+                .set(SimpleRadioComponents.BLOCK_ITEM_DATA, CustomData.of(tag))
+                .build();
+        $$0.applyComponents(dataComponentPatch);
+        super.saveToItem($$0, $$1);
     }
 
     public void loadTag(CompoundTag tag) {

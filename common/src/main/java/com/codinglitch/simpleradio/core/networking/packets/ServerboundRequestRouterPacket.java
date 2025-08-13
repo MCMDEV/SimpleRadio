@@ -3,6 +3,7 @@ package com.codinglitch.simpleradio.core.networking.packets;
 import com.codinglitch.simpleradio.CommonSimpleRadio;
 import com.codinglitch.simpleradio.core.networking.CustomPacket;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
@@ -10,7 +11,7 @@ import java.util.UUID;
 
 public record ServerboundRequestRouterPacket(UUID reference, String routerType, short mapping) implements CustomPacket {
     public static CustomPacketPayload.Type<ServerboundRequestRouterPacket> TYPE = new CustomPacketPayload.Type<>(CommonSimpleRadio.id("request_router"));
-    public static StreamCodec<FriendlyByteBuf, ServerboundRequestRouterPacket> STREAM_CODEC = StreamCodec.ofMember(
+    public static StreamCodec<RegistryFriendlyByteBuf, ServerboundRequestRouterPacket> STREAM_CODEC = StreamCodec.ofMember(
             ServerboundRequestRouterPacket::write, ServerboundRequestRouterPacket::read
     );
 

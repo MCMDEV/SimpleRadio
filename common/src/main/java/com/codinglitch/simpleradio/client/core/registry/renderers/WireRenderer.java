@@ -3,6 +3,7 @@ package com.codinglitch.simpleradio.client.core.registry.renderers;
 import com.codinglitch.simpleradio.CommonSimpleRadio;
 import com.codinglitch.simpleradio.SimpleRadioLibrary;
 import com.codinglitch.simpleradio.client.ClientRadioManager;
+import com.codinglitch.simpleradio.core.registry.SimpleRadioComponents;
 import com.codinglitch.simpleradio.core.registry.blocks.AuditoryBlockEntity;
 import com.codinglitch.simpleradio.core.registry.SimpleRadioItems;
 import com.codinglitch.simpleradio.core.registry.entities.Wire;
@@ -165,7 +166,7 @@ public class WireRenderer extends EntityRenderer<Wire> {
     public static void renderPlayer(AbstractClientPlayer player, MultiBufferSource source, PoseStack poseStack, float partialTick, @Nullable Camera camera) {
         ItemStack wire = RadioManager.isEntityHolding(player, stack -> stack.is(SimpleRadioItems.COPPER_WIRE));
         if (wire != null) {
-            CompoundTag tag = wire.getOrCreateTag();
+            CompoundTag tag = SimpleRadioComponents.getOrCreateTagOnItemStack(wire);
             if (tag.contains("connectTo")) {
                 RadioRouter router = ClientRadioManager.getRouter(tag.getUUID("connectTo"));
                 if (router == null) return;
@@ -194,14 +195,14 @@ public class WireRenderer extends EntityRenderer<Wire> {
     }
 
     public static void buildQuad(VertexConsumer consumer, Matrix4f matrix, int overlay, int packedLight, Vec3 normal, float index, float offset, float tile, Vec3 one, Vec3 two, Vec3 three, Vec3 four) {
-        consumer.vertex(matrix, (float) one.x, (float) one.y, (float) one.z).color(1f, 1f, 1f, 1f).uv(index, tile)
-                .overlayCoords(OverlayTexture.pack(overlay, 15)).uv2(packedLight).normal((float) normal.x, (float) normal.y, (float) normal.z).endVertex();
-        consumer.vertex(matrix, (float) two.x, (float) two.y, (float) two.z).color(1f, 1f, 1f, 1f).uv(index, offset + tile)
-                .overlayCoords(OverlayTexture.pack(overlay, 15)).uv2(packedLight).normal((float) normal.x, (float) normal.y, (float) normal.z).endVertex();
-        consumer.vertex(matrix, (float) three.x, (float) three.y, (float) three.z).color(1f, 1f, 1f, 1f).uv(index, offset + tile)
-                .overlayCoords(OverlayTexture.pack(overlay, 15)).uv2(packedLight).normal((float) normal.x, (float) normal.y, (float) normal.z).endVertex();
-        consumer.vertex(matrix, (float) four.x, (float) four.y, (float) four.z).color(1f, 1f, 1f, 1f).uv(index, tile)
-                .overlayCoords(OverlayTexture.pack(overlay, 15)).uv2(packedLight).normal((float) normal.x, (float) normal.y, (float) normal.z).endVertex();
+        consumer.addVertex(matrix, (float) one.x, (float) one.y, (float) one.z).setColor(1f, 1f, 1f, 1f).setUv(index, tile)
+                .setOverlay(OverlayTexture.pack(overlay, 15)).setLight(packedLight).setNormal((float) normal.x, (float) normal.y, (float) normal.z);
+        consumer.addVertex(matrix, (float) two.x, (float) two.y, (float) two.z).setColor(1f, 1f, 1f, 1f).setUv(index, offset + tile)
+                .setOverlay(OverlayTexture.pack(overlay, 15)).setLight(packedLight).setNormal((float) normal.x, (float) normal.y, (float) normal.z);
+        consumer.addVertex(matrix, (float) three.x, (float) three.y, (float) three.z).setColor(1f, 1f, 1f, 1f).setUv(index, offset + tile)
+                .setOverlay(OverlayTexture.pack(overlay, 15)).setLight(packedLight).setNormal((float) normal.x, (float) normal.y, (float) normal.z);
+        consumer.addVertex(matrix, (float) four.x, (float) four.y, (float) four.z).setColor(1f, 1f, 1f, 1f).setUv(index, tile)
+                .setOverlay(OverlayTexture.pack(overlay, 15)).setLight(packedLight).setNormal((float) normal.x, (float) normal.y, (float) normal.z);
     }
 
     @Override

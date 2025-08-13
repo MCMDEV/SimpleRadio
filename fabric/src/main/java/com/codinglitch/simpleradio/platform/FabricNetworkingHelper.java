@@ -10,6 +10,6 @@ import net.minecraft.server.level.ServerPlayer;
 public class FabricNetworkingHelper implements NetworkingHelper {
     @Override
     public void sendToPlayer(ServerPlayer player, CustomPacket packet) {
-        ServerPlayNetworking.send(player, packet.id(), packet.writeNew());
+        ServerPlayNetworking.send(player, packet);
     }
 }

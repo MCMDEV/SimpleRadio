@@ -1,5 +1,6 @@
 package com.codinglitch.simpleradio.api.central;
 
+import com.codinglitch.simpleradio.core.registry.SimpleRadioComponents;
 import com.codinglitch.simpleradio.core.registry.blocks.*;
 import com.codinglitch.simpleradio.radio.CommonRadioPlugin;
 import com.codinglitch.simpleradio.radio.RadioManager;
@@ -93,15 +94,13 @@ public interface Frequencing {
      * @param stack the ItemStack to change the frequency of
      * @param frequencyName the frequency to set it to
      * @param modulation the modulation type of the frequency
-     * @return The updated tag.
      */
-    default CompoundTag setFrequency(ItemStack stack, String frequencyName, Frequency.Modulation modulation) {
-        CompoundTag tag = stack.getOrCreateTag();
-
-        tag.putString("frequency", frequencyName);
-        tag.putString("modulation", modulation.shorthand);
-
-        return tag;
+    default void setFrequency(ItemStack stack, String frequencyName, Frequency.Modulation modulation) {
+        SimpleRadioComponents.modifyTagOnItemStack(stack, (tag, dirty) -> {
+            tag.putString("frequency", frequencyName);
+            tag.putString("modulation", modulation.shorthand);
+            dirty.set();
+        });
     }
     /**
      * Sets the frequency for a BlockEntity.
@@ -128,9 +127,9 @@ public interface Frequencing {
      * @return The frequency, or null if it doesn't have one.
      */
     default Frequency getFrequency(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = SimpleRadioComponents.getOrCreateTagOnItemStack(stack);
 
-        if (!tag.contains("frequency") || !tag.contains("modulation")) return null;
+        if (!tag.contains("frequency") || !tag.contains("modulation")) return Frequency.getDefaultFrequency();
 
         String frequencyName = tag.getString("frequency");
         Frequency.Modulation modulation = Frequency.modulationOf(tag.getString("modulation"));
@@ -173,13 +172,13 @@ public interface Frequencing {
     }
 
     default void tick(ItemStack stack, Level level) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = SimpleRadioComponents.getOrCreateTagOnItemStack(stack);
         if (!tag.contains("frequency") || tag.getString("frequency").isEmpty())
             setFrequency(stack, this.getDefaultFrequency(), this.getDefaultModulation());
     }
 
     default void appendTooltip(ItemStack stack, List<Component> components) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = SimpleRadioComponents.getOrCreateTagOnItemStack(stack);
 
         if (tag.contains("frequency")) {
             components.add(Component.literal(

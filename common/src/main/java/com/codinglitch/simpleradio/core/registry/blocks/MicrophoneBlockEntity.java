@@ -6,16 +6,20 @@ import com.codinglitch.simpleradio.api.central.WorldlyPosition;
 import com.codinglitch.simpleradio.client.ClientRadioManager;
 import com.codinglitch.simpleradio.core.registry.SimpleRadioBlockEntities;
 import com.codinglitch.simpleradio.core.registry.SimpleRadioBlocks;
+import com.codinglitch.simpleradio.core.registry.SimpleRadioComponents;
 import com.codinglitch.simpleradio.core.registry.SimpleRadioSounds;
 import com.codinglitch.simpleradio.platform.Services;
 import com.codinglitch.simpleradio.radio.RadioRouter;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -47,21 +51,26 @@ public class MicrophoneBlockEntity extends AuditoryBlockEntity implements Listen
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        loadTag(tag);
+    protected void loadAdditional(CompoundTag $$0, HolderLookup.Provider $$1) {
+        super.loadAdditional($$0, $$1);
+        loadTag($$0);
     }
 
     @Override
-    public void saveAdditional(CompoundTag tag) {
+    protected void saveAdditional(CompoundTag $$0, HolderLookup.Provider $$1) {
+        saveTag($$0);
+        super.saveAdditional($$0, $$1);
+    }
+
+    @Override
+    public void saveToItem(ItemStack $$0, HolderLookup.Provider $$1) {
+        CompoundTag tag = new CompoundTag();
         saveTag(tag);
-        super.saveAdditional(tag);
-    }
-
-    @Override
-    public void saveToItem(ItemStack stack) {
-        saveTag(stack.getOrCreateTag());
-        super.saveToItem(stack);
+        DataComponentPatch dataComponentPatch = DataComponentPatch.builder()
+                .set(SimpleRadioComponents.BLOCK_ITEM_DATA, CustomData.of(tag))
+                .build();
+        $$0.applyComponents(dataComponentPatch);
+        super.saveToItem($$0, $$1);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, MicrophoneBlockEntity blockEntity) {

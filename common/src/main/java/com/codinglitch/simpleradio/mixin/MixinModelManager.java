@@ -18,7 +18,7 @@ public abstract class MixinModelManager implements PreparableReloadListener, Aut
 
     @Shadow public abstract BakedModel getModel(ModelResourceLocation modelResourceLocation);
 
-    @Shadow private Map<ResourceLocation, BakedModel> bakedRegistry;
+    @Shadow private Map<ModelResourceLocation, BakedModel> bakedRegistry;
 
     @Inject(
             at = @At(

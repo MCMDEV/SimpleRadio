@@ -16,7 +16,7 @@ public class CommonSimpleRadio {
     }
 
     public static ResourceLocation id(CharSequence delimiter, String... arguments) {
-        return new ResourceLocation(CommonSimpleRadio.ID, String.join(delimiter, arguments));
+        return ResourceLocation.tryBuild(CommonSimpleRadio.ID, String.join(delimiter, arguments));
     }
 
     public static <T> T loadService(Class<T> clazz) {

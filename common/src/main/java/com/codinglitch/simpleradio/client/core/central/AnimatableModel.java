@@ -53,7 +53,4 @@ public abstract class AnimatableModel extends Model {
     public void allocate(int id, AnimationDefinition definition) {
         animations.put(id, definition);
     }
-
-    @Override
-    public abstract void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int i, int i1, float v, float v1, float v2, float v3);
 }

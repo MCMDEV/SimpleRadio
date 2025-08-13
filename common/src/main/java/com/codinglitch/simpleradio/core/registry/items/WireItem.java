@@ -3,6 +3,7 @@ package com.codinglitch.simpleradio.core.registry.items;
 import com.codinglitch.simpleradio.CommonSimpleRadio;
 import com.codinglitch.simpleradio.api.central.Socket;
 import com.codinglitch.simpleradio.core.central.WorldTicking;
+import com.codinglitch.simpleradio.core.registry.SimpleRadioComponents;
 import com.codinglitch.simpleradio.core.registry.blocks.InsulatorBlockEntity;
 import com.codinglitch.simpleradio.core.registry.entities.Wire;
 import net.minecraft.core.BlockPos;
@@ -11,7 +12,9 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -37,40 +40,44 @@ public class WireItem extends Item implements WorldTicking {
 
             if (!interactingSocket.canConnect()) return super.useOn(context);
 
-            CompoundTag tag = stack.getOrCreateTag();
-            if (tag.contains("connectTo")) {
-                BlockPos connectTo = BlockPos.of(tag.getLong("connectToPos"));
+            return SimpleRadioComponents.modifyTagOnItemStackReturning(stack, ((tag, dirty) -> {
+                if (tag.contains("connectTo")) {
+                    BlockPos connectTo = BlockPos.of(tag.getLong("connectToPos"));
 
-                BlockEntity connectToBlockEntity = level.getBlockEntity(connectTo);
-                if (connectToBlockEntity instanceof Socket socket) {
+                    BlockEntity connectToBlockEntity = level.getBlockEntity(connectTo);
+                    if (connectToBlockEntity instanceof Socket socket) {
 
-                    if (!level.isClientSide()) {
-                        Wire wire = Wire.connect(interactingSocket, socket, level);
+                        if (!level.isClientSide()) {
+                            Wire wire = Wire.connect(interactingSocket, socket, level);
 
-                        //connecting.connectTo(centralBlockEntity);
-                        level.playSound(null, pos, SoundEvents.LEASH_KNOT_PLACE, SoundSource.PLAYERS, 1.0f, 0.8f);
+                            //connecting.connectTo(centralBlockEntity);
+                            level.playSound(null, pos, SoundEvents.LEASH_KNOT_PLACE, SoundSource.PLAYERS, 1.0f, 0.8f);
+                        }
+
+                        if (connectToBlockEntity instanceof InsulatorBlockEntity insulatorBlockEntity) {
+                            insulatorBlockEntity.removeConnector();;
+                        }
+
+                        tag.remove("connectTo");
+                        tag.remove("connectToPos");
+                        dirty.set();
+
+                        return InteractionResult.SUCCESS;
+                    }
+                } else {
+                    tag.putUUID("connectTo", interactingSocket.getReference());
+                    tag.putLong("connectToPos", blockEntity.getBlockPos().asLong());
+                    dirty.set();
+
+                    if (blockEntity instanceof InsulatorBlockEntity socket) {
+                        socket.setConnector(context.getPlayer());
                     }
 
-                    if (connectToBlockEntity instanceof InsulatorBlockEntity insulatorBlockEntity) {
-                        insulatorBlockEntity.removeConnector();;
-                    }
-
-                    tag.remove("connectTo");
-                    tag.remove("connectToPos");
-
+                    level.playSound(null, pos, SoundEvents.LEASH_KNOT_PLACE, SoundSource.PLAYERS, 1.0f, 1.1f);
                     return InteractionResult.SUCCESS;
                 }
-            } else {
-                tag.putUUID("connectTo", interactingSocket.getReference());
-                tag.putLong("connectToPos", blockEntity.getBlockPos().asLong());
-
-                if (blockEntity instanceof InsulatorBlockEntity socket) {
-                    socket.setConnector(context.getPlayer());
-                }
-
-                level.playSound(null, pos, SoundEvents.LEASH_KNOT_PLACE, SoundSource.PLAYERS, 1.0f, 1.1f);
-                return InteractionResult.SUCCESS;
-            }
+                return super.useOn(context);
+            }));
         }
 
         return super.useOn(context);
@@ -81,14 +88,16 @@ public class WireItem extends Item implements WorldTicking {
         super.inventoryTick(stack, level, entity, slot, b);
 
         AtomicBoolean isHolding = new AtomicBoolean(false);
-        entity.getHandSlots().forEach(handStack -> {
+        if(!(entity instanceof Player player)) return;
+
+        player.getHandSlots().forEach(handStack -> {
             if (handStack.equals(stack)) {
                 isHolding.set(true);
             }
         });
 
         if (!isHolding.get()) {
-            CompoundTag tag = stack.getOrCreateTag();
+            CompoundTag tag = SimpleRadioComponents.getOrCreateTagOnItemStack(stack);
             if (tag.contains("connectTo")) {
                 BlockPos connectTo = BlockPos.of(tag.getLong("connectToPos"));
 
@@ -104,7 +113,7 @@ public class WireItem extends Item implements WorldTicking {
 
     @Override
     public void worldTick(ItemEntity item, Level level) {
-        CompoundTag tag = item.getItem().getOrCreateTag();
+        CompoundTag tag = SimpleRadioComponents.getOrCreateTagOnItemStack(item.getItem());
         if (tag.contains("connectTo")) {
             tag.remove("connectTo");
         }

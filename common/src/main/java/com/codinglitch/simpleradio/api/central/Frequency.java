@@ -3,17 +3,30 @@ package com.codinglitch.simpleradio.api.central;
 import com.codinglitch.simpleradio.CommonSimpleRadio;
 import com.codinglitch.simpleradio.SimpleRadioLibrary;
 import com.codinglitch.simpleradio.client.ClientRadioManager;
-import com.codinglitch.simpleradio.radio.*;
+import com.codinglitch.simpleradio.radio.RadioManager;
+import com.codinglitch.simpleradio.radio.RadioReceiver;
+import com.codinglitch.simpleradio.radio.RadioTransmitter;
+import com.codinglitch.simpleradio.radio.RouterContainer;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class Frequency implements Medium {
-    public enum Modulation {
+    public enum Modulation implements StringRepresentable {
         FREQUENCY("FM"),
         AMPLITUDE("AM");
 
@@ -22,7 +35,25 @@ public class Frequency implements Medium {
         Modulation(String shorthand) {
             this.shorthand = shorthand;
         }
+
+        @Override
+        public String getSerializedName() {
+            return shorthand;
+        }
     }
+
+    public static Codec<Frequency> CODEC = RecordCodecBuilder.create(frequencyInstance ->
+        frequencyInstance.group(
+                Codec.sizeLimitedString(8).fieldOf("frequency").forGetter(frequency1 -> frequency1.frequency),
+                StringRepresentable.fromEnum(Modulation::values).fieldOf("modulation").forGetter(frequency1 -> frequency1.modulation)
+                ).apply(frequencyInstance, Frequency::new)
+    );
+
+    public static StreamCodec<ByteBuf, Frequency> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.fromCodec(CODEC),
+            Function.identity(),
+            Function.identity()
+    );
 
     private static final List<Frequency> frequencies = new ArrayList<>();
 
@@ -62,10 +93,10 @@ public class Frequency implements Medium {
     public static void onLexiconRevision() {
         FREQUENCY_DIGITS = SimpleRadioLibrary.SERVER_CONFIG.frequency.wholePlaces + SimpleRadioLibrary.SERVER_CONFIG.frequency.decimalPlaces;
         MAX_FREQUENCY = (int) java.lang.Math.pow(10, FREQUENCY_DIGITS);
-        FREQUENCY_PATTERN = "^\\d{"+ SimpleRadioLibrary.SERVER_CONFIG.frequency.wholePlaces+"}.\\d{"+ SimpleRadioLibrary.SERVER_CONFIG.frequency.decimalPlaces+"}$";
+        FREQUENCY_PATTERN = "^\\d{" + SimpleRadioLibrary.SERVER_CONFIG.frequency.wholePlaces + "}.\\d{" + SimpleRadioLibrary.SERVER_CONFIG.frequency.decimalPlaces + "}$";
 
         if (SimpleRadioLibrary.SERVER_CONFIG.frequency.defaultFrequency.equals("auto-generate")) {
-            DEFAULT_FREQUENCY = "0".repeat(SimpleRadioLibrary.SERVER_CONFIG.frequency.wholePlaces)+"."+"0".repeat(SimpleRadioLibrary.SERVER_CONFIG.frequency.decimalPlaces);
+            DEFAULT_FREQUENCY = "0".repeat(SimpleRadioLibrary.SERVER_CONFIG.frequency.wholePlaces) + "." + "0".repeat(SimpleRadioLibrary.SERVER_CONFIG.frequency.decimalPlaces);
         } else {
             DEFAULT_FREQUENCY = SimpleRadioLibrary.SERVER_CONFIG.frequency.defaultFrequency;
         }
@@ -101,7 +132,7 @@ public class Frequency implements Medium {
 
     public static String incrementFrequency(String frequency, int amount) {
         int rawFrequency = Integer.parseInt(frequency.replaceAll("[.]", ""));
-        String str = String.format("%0"+FREQUENCY_DIGITS+"d", Math.clamp(0, MAX_FREQUENCY-1, rawFrequency + amount));
+        String str = String.format("%0" + FREQUENCY_DIGITS + "d", Math.clamp(0, MAX_FREQUENCY - 1, rawFrequency + amount));
         return new StringBuilder(str).insert(str.length() - SimpleRadioLibrary.SERVER_CONFIG.frequency.decimalPlaces, ".").toString();
     }
 
@@ -134,12 +165,15 @@ public class Frequency implements Medium {
         Optional<RadioReceiver> result = receivers.stream().filter(filter).findFirst();
         return result.orElse(null);
     }
+
     public RadioReceiver getReceiver(WorldlyPosition location) {
         return getReceiver(receiver -> location.equals(receiver.location));
     }
+
     public RadioReceiver getReceiver(Entity owner) {
         return getReceiver(receiver -> owner.equals(receiver.owner));
     }
+
     public RadioReceiver getReceiver(UUID id) {
         return getReceiver(receiver -> id.equals(receiver.reference));
     }
@@ -171,6 +205,7 @@ public class Frequency implements Medium {
         //CommonSimpleRadio.info("Failed to add receiver {} to frequency {} as they already exist", id, this.frequency);
         return receiver;
     }
+
     public RadioReceiver addReceiver(UUID id, WorldlyPosition location) {
         return addReceiver(new RadioReceiver(this, location, id));
     }
@@ -187,6 +222,7 @@ public class Frequency implements Medium {
         //CommonSimpleRadio.info("Failed to add receiver {} to frequency {} as they already exist", id, this.frequency);
         return receiver;
     }
+
     public RadioReceiver addReceiver(UUID id, Entity entity) {
         return addReceiver(new RadioReceiver(this, entity, id));
     }
@@ -196,15 +232,19 @@ public class Frequency implements Medium {
 
         if (!this.validate()) frequencies.remove(this);
     }
+
     public void removeReceiver(RadioReceiver receiver) {
         removeReceiver(receiver::equals);
     }
+
     public void removeReceiver(Entity owner) {
         removeReceiver(receiver -> owner.equals(receiver.owner));
     }
+
     public void removeReceiver(WorldlyPosition location) {
         removeReceiver(receiver -> location.equals(receiver.location));
     }
+
     public void removeReceiver(UUID id) {
         removeReceiver(receiver -> id.equals(receiver.reference));
     }
@@ -215,12 +255,15 @@ public class Frequency implements Medium {
         Optional<RadioTransmitter> result = transmitters.stream().filter(filter).findFirst();
         return result.orElse(null);
     }
+
     public RadioTransmitter getTransmitter(WorldlyPosition location) {
         return getTransmitter(transmitter -> location.equals(transmitter.location));
     }
+
     public RadioTransmitter getTransmitter(Entity owner) {
         return getTransmitter(transmitter -> owner.equals(transmitter.owner));
     }
+
     public RadioTransmitter getTransmitter(UUID id) {
         return getTransmitter(transmitter -> id.equals(transmitter.reference));
     }
@@ -252,6 +295,7 @@ public class Frequency implements Medium {
         //CommonSimpleRadio.info("Failed to add transmitter {} to frequency {} as they already exist", id, this.frequency);
         return transmitter;
     }
+
     public RadioTransmitter addTransmitter(UUID id, WorldlyPosition location) {
         return addTransmitter(new RadioTransmitter(this, location, id));
     }
@@ -268,6 +312,7 @@ public class Frequency implements Medium {
         //CommonSimpleRadio.info("Failed to add transmitter {} to frequency {} as they already exist", id, this.frequency);
         return transmitter;
     }
+
     public RadioTransmitter addTransmitter(UUID id, Entity entity) {
         return addTransmitter(new RadioTransmitter(this, entity, id));
     }
@@ -277,15 +322,19 @@ public class Frequency implements Medium {
 
         if (!this.validate()) frequencies.remove(this);
     }
+
     public void removeTransmitter(RadioTransmitter transmitter) {
         removeTransmitter(transmitter::equals);
     }
+
     public void removeTransmitter(Entity owner) {
         removeTransmitter(transmitter -> owner.equals(transmitter.owner));
     }
+
     public void removeTransmitter(WorldlyPosition location) {
         removeTransmitter(transmitter -> location.equals(transmitter.location));
     }
+
     public void removeTransmitter(UUID id) {
         removeTransmitter(transmitter -> id.equals(transmitter.reference));
     }
@@ -326,6 +375,10 @@ public class Frequency implements Medium {
         if (found != null) return found;
 
         return new Frequency(frequency, modulation);
+    }
+
+    public static Frequency getDefaultFrequency() {
+        return getOrCreateFrequency(DEFAULT_FREQUENCY, DEFAULT_MODULATION);
     }
 
     @Nullable

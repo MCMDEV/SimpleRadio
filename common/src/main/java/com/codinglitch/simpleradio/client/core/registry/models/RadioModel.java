@@ -78,8 +78,8 @@ public class RadioModel extends AnimatableModel {
 		return root;
 	}
 
-	@Override
-	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-		bone.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
-	}
+    @Override
+    public void renderToBuffer(PoseStack var1, VertexConsumer var2, int var3, int var4, int var5) {
+        bone.render(var1, var2, var3, var4, var5);
+    }
 }

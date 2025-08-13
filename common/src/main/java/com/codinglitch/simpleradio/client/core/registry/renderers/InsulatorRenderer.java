@@ -47,7 +47,7 @@ public class InsulatorRenderer implements BlockEntityRenderer<InsulatorBlockEnti
                 rotation = (float) (3f + blockEntity.connector.distanceToSqr(pos.x, pos.y, pos.z)*0.5f);
             }
 
-            blockEntity.rotation = Math.lerp(blockEntity.rotation, rotation, Math.min(Minecraft.getInstance().getDeltaFrameTime() * 0.2f, 1));
+            blockEntity.rotation = Math.lerp(blockEntity.rotation, rotation, Math.min(Minecraft.getInstance().getFrameTimeNs() * 0.2f, 1));
 
             model.wire.visible = !blockEntity.getWires().isEmpty() || blockEntity.connector != null;
             model.spool.xRot = blockEntity.rotation;
@@ -66,7 +66,7 @@ public class InsulatorRenderer implements BlockEntityRenderer<InsulatorBlockEnti
             }
 
             VertexConsumer vertexConsumer = bufferSource.getBuffer(model.renderType(InsulatorModel.TEXTURE_LOCATION));
-            model.renderToBuffer(poseStack, vertexConsumer, light, overlay, 1, 1, 1, 1);
+            model.renderToBuffer(poseStack, vertexConsumer, light, overlay, 1);
 
             poseStack.popPose();
         }

@@ -10,27 +10,27 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
-import net.neoforged.neoforge.network.registration.IPayloadRegistrar;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.apache.logging.log4j.util.TriConsumer;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-@Mod.EventBusSubscriber(modid = CommonSimpleRadio.ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = CommonSimpleRadio.ID, bus = EventBusSubscriber.Bus.MOD)
 public class NeoForgeLoader {
     @SubscribeEvent
     public static void gatherData(GatherDataEvent event) {
@@ -45,7 +45,7 @@ public class NeoForgeLoader {
                 event.includeServer(),
                 new LootTableProvider(generator.getPackOutput(), Set.of(), List.of(
                         new LootTableProvider.SubProviderEntry(SimpleRadioBlockLootTableProvider::new, LootContextParamSets.BLOCK)
-                ))
+                ), event.getLookupProvider())
         );
     }
 
@@ -74,26 +74,27 @@ public class NeoForgeLoader {
     }
 
     @SubscribeEvent
-    public static void loadPackets(final RegisterPayloadHandlerEvent event) {
-        final IPayloadRegistrar registrar = event.registrar(CommonSimpleRadio.ID);
+    public static void loadPackets(final RegisterPayloadHandlersEvent event) {
+        final PayloadRegistrar registrar = event.registrar(CommonSimpleRadio.ID);
 
         SimpleRadioNetworking.loadServerbound(new SimpleRadioNetworking.ServerboundRegistry() {
+
             @Override
-            public <P extends CustomPacket> void register(ResourceLocation id, Class<P> packetClass, FriendlyByteBuf.Reader<P> reader, BiConsumer<P, FriendlyByteBuf> writer, TriConsumer<P, MinecraftServer, ServerPlayer> handler) {
-                registrar.play(id, reader, payloadHandler -> payloadHandler
-                    .server((packet, context) -> {
-                        Player player = context.player().orElse(null);
-                        if (!(player instanceof ServerPlayer serverPlayer)) return;
-                        handler.accept(packet, serverPlayer.getServer(), serverPlayer);
-                    }));
+            public <T extends CustomPacket> void register(CustomPacketPayload.Type<T> type, Class<T> packetClass, StreamCodec<RegistryFriendlyByteBuf, T> codec, TriConsumer<T, MinecraftServer, ServerPlayer> handler) {
+                registrar.playToClient(type, codec, (payload, context) -> {
+                    Player player = context.player();
+                    if (!(player instanceof ServerPlayer serverPlayer)) return;
+                    handler.accept((T) payload, serverPlayer.getServer(), serverPlayer);
+                });
             }
         });
 
         SimpleRadioNetworking.loadClientbound(new SimpleRadioNetworking.ClientboundRegistry() {
             @Override
-            public <P extends CustomPacket> void register(ResourceLocation id, Class<P> packetClass, FriendlyByteBuf.Reader<P> reader, BiConsumer<P, FriendlyByteBuf> writer, Consumer<P> handler) {
-                registrar.play(id, reader, payloadHandler -> payloadHandler
-                    .client((packet, context) -> handler.accept(packet)));
+            public <T extends CustomPacket> void register(CustomPacketPayload.Type<T> type, Class<T> packetClass, StreamCodec<RegistryFriendlyByteBuf, T> codec, Consumer<T> handler) {
+                registrar.playToServer(type, codec, (payload, context) -> {
+                   handler.accept(payload);
+                });
             }
         });
     }
