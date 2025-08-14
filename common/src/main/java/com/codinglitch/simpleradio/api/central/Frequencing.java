@@ -189,7 +189,7 @@ public interface Frequencing {
         if (Screen.hasShiftDown() && tag.contains("user")) {
             components.add(Component.translatable(
                     "tooltip.simpleradio.receiver_user",
-                    tag.getUUID("user")
+                    tag.getUUID("user").toString()
             ).withStyle(ChatFormatting.DARK_GRAY));
         }
     }

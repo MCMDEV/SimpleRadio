@@ -1,27 +1,20 @@
 package com.codinglitch.simpleradio.datagen;
 
-import com.codinglitch.simpleradio.core.FabricLoader;
+import com.codinglitch.simpleradio.core.ItemsEnabledCondition;
 import com.codinglitch.simpleradio.core.central.ItemHolder;
 import com.codinglitch.simpleradio.core.registry.SimpleRadioItems;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
-import net.minecraft.advancements.Advancement;
-import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.crafting.Recipe;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class SimpleRadioRecipeProvider extends FabricRecipeProvider {
-
-    public static final HashMap<Recipe<?>, ResourceLocation> MAP = new HashMap<>();
 
     public SimpleRadioRecipeProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries);
@@ -33,7 +26,7 @@ public class SimpleRadioRecipeProvider extends FabricRecipeProvider {
             return exporter;
 
         ResourceLocation location = optional.get().getKey();
-        return withConditions(exporter, FabricLoader.itemsEnabled(location.getPath()));
+        return withConditions(exporter, new ItemsEnabledCondition(location.getPath()));
     }
 
     @Override

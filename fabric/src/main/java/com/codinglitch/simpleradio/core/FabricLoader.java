@@ -7,14 +7,12 @@ import com.codinglitch.simpleradio.core.registry.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.apache.logging.log4j.util.TriConsumer;
@@ -67,10 +65,8 @@ public class FabricLoader {
 //        return (client, listener, buffer, sender) -> consumer.accept(decoder.apply(buffer));
 //    }
 
-    private static final ResourceLocation ITEMS_ENABLED = CommonSimpleRadio.id("items_enabled");
-
-    public static ResourceCondition itemsEnabled(String... items) {
-        return ResourceConditions.alwaysTrue();
+    public static void loadResourceConditions() {
+        ResourceConditions.register(ItemsEnabledCondition.TYPE);
     }
 
     public static void load() {
@@ -79,6 +75,7 @@ public class FabricLoader {
         loadPackets();
         loadParticles();
         loadComponents();
+        loadResourceConditions();
 
         CommonSimpleRadio.load();
     }

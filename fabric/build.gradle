@@ -46,7 +46,7 @@ dependencies {
 
     // JEI / REI
     if (recipe_viewer == "jei") {
-        //modLocalRuntime("mezz.jei:jei-${minecraft_version}-fabric:${jei_version}")
+        modLocalRuntime("mezz.jei:jei-${minecraft_version}-fabric:${jei_version}")
     } else if (recipe_viewer == "rei") {
         // TODO: add rei to devenv
     }
